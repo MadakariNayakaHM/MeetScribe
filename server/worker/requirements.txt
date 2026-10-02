@@ -1,0 +1,3 @@
+faster-whisper==1.2.1
+# faster-whisper 1.2.1 passes an argument PyAV 17+ removed
+av>=11,<17

@@ -1,0 +1,32 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:27018:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  app:
+    build: .
+    profiles: ["prod"]
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    environment:
+      NODE_ENV: production
+      PORT: 5050
+      MONGO_URI: mongodb://mongo:27017/meetscribe
+      JWT_SECRET: ${JWT_SECRET:-}  # required; set in shell or a .env file next to this compose file
+      CLIENT_ORIGIN: http://localhost:5050
+      WHISPER_MODEL: ${WHISPER_MODEL:-small}
+    ports:
+      - "5050:5050"
+    volumes:
+      - uploads:/app/server/uploads
+      - whisper-models:/app/server/worker/models
+
+volumes:
+  mongo-data:
+  uploads:
+  whisper-models:

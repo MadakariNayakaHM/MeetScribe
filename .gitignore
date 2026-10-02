@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+server/uploads/*
+!server/uploads/.gitkeep
+server/worker/.venv/
+server/worker/models/
+__pycache__/

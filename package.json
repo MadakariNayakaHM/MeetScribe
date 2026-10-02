@@ -1,0 +1,15 @@
+{
+  "name": "meetscribe",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && npm --prefix server install && npm --prefix client install",
+    "db": "docker compose up -d mongo",
+    "dev": "concurrently -n api,web -c blue,magenta \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "build": "npm --prefix client run build",
+    "start": "NODE_ENV=production npm --prefix server start",
+    "setup:whisper": "python3 -m venv server/worker/.venv && server/worker/.venv/bin/pip install -r server/worker/requirements.txt"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}

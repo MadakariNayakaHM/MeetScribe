@@ -1,0 +1,6 @@
+**/node_modules
+**/dist
+server/uploads
+server/worker/.venv
+server/worker/models
+**/.env
