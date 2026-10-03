@@ -10,6 +10,7 @@ import { config } from './config.js';
 import authRoutes from './routes/auth.js';
 import meetingRoutes from './routes/meetings.js';
 import mediaRoutes from './routes/media.js';
+import settingsRoutes from './routes/settings.js';
 import { initTranscription, whisperStatus } from './services/transcription.js';
 
 const app = express();
@@ -24,6 +25,7 @@ app.get('/api/config', (_req, res) => res.json({ whisper: whisperStatus() }));
 app.use('/api/auth', authRoutes);
 app.use('/api/meetings', meetingRoutes);
 app.use('/api/media', mediaRoutes);
+app.use('/api/settings', settingsRoutes);
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }));
 
 // In production, serve the built React app from the same origin.

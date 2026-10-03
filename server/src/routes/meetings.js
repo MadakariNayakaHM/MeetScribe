@@ -9,6 +9,7 @@ import { HttpError, clampInt, escapeRegex } from '../utils/http.js';
 import { exportFormats, renderExport } from '../utils/export.js';
 import { config } from '../config.js';
 import { cancel, enqueue, isActive, whisperStatus } from '../services/transcription.js';
+import { answer, loadAiSettings, summarize } from '../services/ai.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -301,6 +302,55 @@ router.get('/:id/audio-url', async (req, res) => {
   const meeting = await findOwned(req, { audio: 1 });
   if (!meeting.audio?.filename) throw new HttpError(404, 'This meeting has no audio');
   res.json({ url: `/api/media/${meeting._id}?token=${signMediaToken(req.userId, meeting._id)}` });
+});
+
+// ---------- AI (summary + Q&A) ----------
+
+// Only one AI request per meeting at a time, so double clicks don't pay twice.
+const aiBusy = new Set();
+async function withAiLock(id, fn) {
+  if (aiBusy.has(id)) throw new HttpError(409, 'An AI request for this meeting is already running.');
+  aiBusy.add(id);
+  try {
+    return await fn();
+  } finally {
+    aiBusy.delete(id);
+  }
+}
+
+router.post('/:id/summary', async (req, res) => {
+  const meeting = await findOwned(req, { title: 1, notes: 1, startedAt: 1, createdAt: 1, durationMs: 1, segments: 1 });
+  const settings = await loadAiSettings(req.userId);
+  const text = await withAiLock(String(meeting._id), () => summarize(meeting, settings));
+  const summary = { text, generatedAt: new Date(), provider: 'openai', model: settings.model };
+  await Meeting.updateOne(ownedFilter(req), { $set: { summary } });
+  res.json({ summary });
+});
+
+router.delete('/:id/summary', async (req, res) => {
+  await Meeting.updateOne(ownedFilter(req), { $unset: { summary: 1 } });
+  res.status(204).end();
+});
+
+router.post('/:id/chat', async (req, res) => {
+  const question = str(req.body?.question, 4000);
+  if (!question) throw new HttpError(400, 'Ask a question');
+  const meeting = await findOwned(req, {
+    title: 1, notes: 1, startedAt: 1, createdAt: 1, durationMs: 1, segments: 1, summary: 1, chat: 1,
+  });
+  const settings = await loadAiSettings(req.userId);
+  const reply = await withAiLock(String(meeting._id), () => answer(meeting, meeting.chat, question, settings));
+  const added = [
+    { _id: new ObjectId(), role: 'user', content: question, at: new Date() },
+    { _id: new ObjectId(), role: 'assistant', content: reply.slice(0, 20000), at: new Date() },
+  ];
+  await Meeting.updateOne(ownedFilter(req), { $push: { chat: { $each: added } } });
+  res.json({ messages: added });
+});
+
+router.delete('/:id/chat', async (req, res) => {
+  await Meeting.updateOne(ownedFilter(req), { $set: { chat: [] } });
+  res.status(204).end();
 });
 
 // ---------- export ----------

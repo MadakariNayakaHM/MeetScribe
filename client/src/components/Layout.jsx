@@ -11,6 +11,7 @@ export default function Layout() {
         </Link>
         <nav>
           <NavLink to="/" end>Meetings</NavLink>
+          <NavLink to="/settings">Settings</NavLink>
           <NavLink to="/record" className="btn btn-primary btn-sm">● New recording</NavLink>
           <span className="user-chip" title={user.email}>{user.name}</span>
           <button className="btn btn-ghost btn-sm" onClick={logout}>Log out</button>

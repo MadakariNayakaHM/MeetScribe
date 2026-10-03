@@ -31,6 +31,7 @@ const formats = {
       ];
       if (m.tags?.length) lines.push(`- **Tags:** ${m.tags.join(', ')}`);
       if (m.notes?.trim()) lines.push('', '## Notes', '', m.notes.trim());
+      if (m.summary?.text) lines.push('', '## AI study notes', '', m.summary.text.replace(/^## /gm, '### '));
       const highlights = m.segments.filter((s) => s.highlighted);
       if (highlights.length) {
         lines.push('', '## Highlights', '');

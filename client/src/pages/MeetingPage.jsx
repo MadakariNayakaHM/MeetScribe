@@ -4,6 +4,7 @@ import { api, downloadExport } from '../lib/api.js';
 import { clock, formatDate, humanDuration } from '../lib/format.js';
 import Highlight from '../components/Highlight.jsx';
 import Segment from '../components/Segment.jsx';
+import { AskTab, SummaryTab } from '../components/AiPanel.jsx';
 import { useServerConfig } from '../lib/useServerConfig.js';
 
 const EXPORTS = [
@@ -25,6 +26,7 @@ export default function MeetingPage() {
   const [filter, setFilter] = useState('');
   const [onlyHighlights, setOnlyHighlights] = useState(false);
   const [follow, setFollow] = useState(true);
+  const [tab, setTab] = useState('transcript');
   const audioRef = useRef(null);
   const { whisper } = useServerConfig();
 
@@ -263,6 +265,21 @@ export default function MeetingPage() {
 
       <div className="meeting-grid">
         <section className="card transcript">
+          <div className="tabs" role="tablist">
+            {[['transcript', 'Transcript'], ['summary', '✨ Study notes'], ['ask', '💬 Ask']].map(([key, label]) => (
+              <button key={key} role="tab" aria-selected={tab === key} className={`tab${tab === key ? ' on' : ''}`} onClick={() => setTab(key)}>
+                {label}
+                {key === 'ask' && meeting.chat?.length > 0 && <span className="badge">{meeting.chat.length / 2}</span>}
+              </button>
+            ))}
+          </div>
+          {tab === 'summary' && (
+            <SummaryTab meeting={meeting} onChange={(patch) => setMeeting((m) => ({ ...m, ...patch }))} onSeek={audioUrl ? seek : undefined} setToast={setToast} />
+          )}
+          {tab === 'ask' && (
+            <AskTab meeting={meeting} onChange={(patch) => setMeeting((m) => ({ ...m, ...patch }))} onSeek={audioUrl ? seek : undefined} setToast={setToast} />
+          )}
+          {tab === 'transcript' && <>
           <div className="transcript-tools">
             <input type="search" placeholder="Find in transcript…" value={filter} onChange={(e) => setFilter(e.target.value)} />
             <label className="check">
@@ -285,6 +302,7 @@ export default function MeetingPage() {
               onDelete={() => deleteSegment(seg._id)}
             />
           ))}
+          </>}
         </section>
 
         <aside className="side">

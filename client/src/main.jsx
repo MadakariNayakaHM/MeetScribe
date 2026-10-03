@@ -8,6 +8,7 @@ import AuthPage from './pages/AuthPage.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Recorder from './pages/Recorder.jsx';
 import MeetingPage from './pages/MeetingPage.jsx';
+import Settings from './pages/Settings.jsx';
 import './styles.css';
 
 const router = createBrowserRouter([
@@ -23,6 +24,7 @@ const router = createBrowserRouter([
       { path: '/', element: <Dashboard /> },
       { path: '/record', element: <Recorder /> },
       { path: '/meetings/:id', element: <MeetingPage /> },
+      { path: '/settings', element: <Settings /> },
     ],
   },
   { path: '*', element: <Navigate to="/" replace /> },

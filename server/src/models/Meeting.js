@@ -41,11 +41,22 @@ const meetingSchema = new mongoose.Schema(
       completedAt: Date,
     },
     segments: { type: [segmentSchema], default: [] },
-    // Reserved for future AI features (summary, action items, ...).
+    // AI-generated study notes (Markdown) and a Q&A thread about the transcript.
     summary: {
       text: String,
       generatedAt: Date,
       provider: String,
+      model: String,
+    },
+    chat: {
+      type: [
+        {
+          role: { type: String, enum: ['user', 'assistant'], required: true },
+          content: { type: String, required: true, maxlength: 20000 },
+          at: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
     },
   },
   { timestamps: true },
